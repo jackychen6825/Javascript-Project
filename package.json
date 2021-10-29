@@ -1,0 +1,38 @@
+{
+  "name": "Investment",
+  "version": "1.0.0",
+  "description": "Background During the pandemic, there has been a surge of new investors who trade on low-cost platform such as RobinHood. Dangerously, investors are not very aware of the history and nature of the stock market. This application will allow users to simulate portfolios under an investment strategy and, more meaningfully, show the distribution of returns on different investment strategies over a large sample size. Users can then compare the expected outcomes of the conventional and proven investment strategies and determine which one is most suited to their financial needs.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --watch --mode=development",
+    "build": "webpack --mode=production"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackychen6825/Javascript-Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jackychen6825/Javascript-Project/issues"
+  },
+  "homepage": "https://github.com/jackychen6825/Javascript-Project#readme",
+  "dependencies": {
+    "@babel/core": "^7.15.8",
+    "@babel/preset-env": "^7.15.8",
+    "babel-loader": "^8.2.3",
+    "core-js": "^3.19.0",
+    "css-loader": "^6.5.0",
+    "mini-css-extract-plugin": "^2.4.3",
+    "regenerator-runtime": "^0.13.9",
+    "sass": "^1.43.4",
+    "sass-loader": "^12.3.0",
+    "webpack": "^5.61.0",
+    "webpack-cli": "^4.9.1"
+  }, 
+  "browserslist": [
+    "defaults"
+  ]
+}
