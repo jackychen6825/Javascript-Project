@@ -1,9 +1,10 @@
 class Stock {
    constructor(ticker) {
        this.ticker = ticker;
-       this.createChart();
-       this.createTable();
-   }
+       this.createPriceChart();
+       this.createEarningsChart();
+       this.createBalanceSheet();
+   } 
    
    async fetchStock() {
        const SYM = this.ticker; 
@@ -19,6 +20,7 @@ class Stock {
 
        let response = await fetch(API_CALL); 
        let data = await response.json();
+
         for (var key in data['Time Series (Daily)']) {
             DATE.push(key);
             OPEN.push(data['Time Series (Daily)'][key]['1. open']);
@@ -29,39 +31,21 @@ class Stock {
                 parseFloat(data['Time Series (Daily)'][key]['6. volume']) / 100000
                 );
         }     
-   
 
         return { DATE, OPEN, HIGH, LOW, CLOSE, VOLUME }; 
     }
 
-    async fetchOverview() {
-        const SYM = this.ticker;
-        const API_KEY = '6YCHHVKCZXK7NOCZ';
-        const API_CALL = `https://www.alphavantage.co/query?function=OVERVIEW&symbol=${SYM}&apikey=${API_KEY}`;
-
-        let response = await fetch(API_CALL);
-        let data = await response.json();
-
-        const name = data.Name; 
-        const description = data.Description;
-        const marketCap = data.MarketCapitalization;
-        const ebitda = data.EBITDA;
-        const pe = data.PERatio; 
-
-        return { name, description, marketCap, ebitda, pe}; 
-
-    }
-
-    async createChart() {
-        const canvas = document.querySelector("canvas");
+    async createPriceChart() {
+        const canvas = document.querySelector(".price-chart");
         canvas.remove();
-        const canvasContainer = document.querySelector("#chart-container");
+        const canvasContainer = document.querySelector("#price-chart-container");
         const newCanvas = document.createElement("canvas");
+        newCanvas.className = "price-chart";
         canvasContainer.appendChild(newCanvas);
 
-        const stockInfo = await this.fetchStock(); 
+        const stockInfo = await this.fetchStock();
 
-        new Chart(document.querySelector("canvas"), {
+        new Chart(document.querySelector(".price-chart"), {
             data: {
                 datasets: [{
                     type: 'bar',
@@ -87,57 +71,125 @@ class Stock {
         });
     }
 
-    async createTable() {
-        const tableHead = document.querySelector("thead");
-        const tableBody = document.querySelector("tbody");
-        const response = await this.fetchStock(); 
-        const headers = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume']
-        const rows = []; 
+    async createEarningsChart() {
+        const SYM = this.ticker;
+        const API_KEY = '6YCHHVKCZXK7NOCZ';
+        const API_CALL = `https://www.alphavantage.co/query?function=EARNINGS&symbol=${SYM}&apikey=${API_KEY}`;
 
+        const DATE = [];
+        const REPORTED = [];
+        const ESTIMATED = [];
 
+        let res = await fetch(API_CALL);
+        let data = await res.json();
 
-        for (let i = 0; i < 100; i++) {
-            const row = [];
-            row.push(response.DATE[i]); 
-            row.push(response.OPEN[i]); 
-            row.push(response.HIGH[i]); 
-            row.push(response.LOW[i]); 
-            row.push(response.CLOSE[i]); 
-            row.push(response.VOLUME[i]); 
-            rows.push(row); 
+        for (const hash of data['quarterlyEarnings']) {
+            DATE.push(hash['fiscalDateEnding']); 
+            REPORTED.push(hash['reportedEPS']);
+            ESTIMATED.push(hash['estimatedEPS']);
         }
 
-        console.log(response.DATE.reverse());
-        
-        //Clear the table 
-        tableHead.innerHTML = "<tr></tr>";
-        tableBody.innerHTML = "";
+        const canvas = document.querySelector(".earnings-chart");
+        canvas.remove();
+        const canvasContainer = document.querySelector("#earnings-chart-container");
+        const newCanvas = document.createElement("canvas");
+        newCanvas.className = "earnings-chart";
+        canvasContainer.appendChild(newCanvas);
 
-        //Popuate the headers 
-        for (const headerText of headers) {
-            const headerElement = document.createElement("th");
-
-            headerElement.textContent = headerText;
-            tableHead.querySelector("tr").appendChild(headerElement);
-        }
-
-        //Populate the rows
-        for (const row of rows) {
-            const rowElement = document.createElement("tr");
-
-            for (const cellText of row) {
-                const cellElement = document.createElement("td");
-
-                cellElement.textContent = cellText; 
-                rowElement.appendChild(cellElement); 
+        new Chart(document.querySelector(".earnings-chart"), {
+            data: {
+                datasets: [{
+                    type: 'bar',
+                    label: 'Reported EPS',
+                    data: REPORTED.reverse(),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)'
+                }, {
+                    type: 'bar',
+                    label: 'Estimated EPS',
+                    data: ESTIMATED.reverse(),
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgb(54, 162, 235)'
+                }],
+                labels: DATE.reverse()
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
             }
-
-            tableBody.appendChild(rowElement);
-        }
-
+        });
     }
 
+    async createBalanceSheet() {
+        const SYM = this.ticker;
+        const API_KEY = '6YCHHVKCZXK7NOCZ';
+        const API_CALL = `https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol=${SYM}&apikey=${API_KEY}`;
+
+        const DATE = [];
+        const ASSETS = [];
+        const LIABILITIES = [];
+        const EQUITY = [];
+
+        let response = await fetch(API_CALL);
+        let data = await response.json();
+
+        for (const report of data['quarterlyReports']) {
+            DATE.push(report['fiscalDateEnding']);
+            ASSETS.push(
+                parseFloat(report['totalAssets']) / 1000000
+                );
+            LIABILITIES.push(
+                parseFloat(report['totalLiabilities']) / 1000000
+                );
+            EQUITY.push(
+                parseFloat(report['totalShareholderEquity']) / 1000000
+                );
+        }
+
+        const canvas = document.querySelector(".bs-chart");
+        canvas.remove();
+        const canvasContainer = document.querySelector("#bs-chart-container");
+        const newCanvas = document.createElement("canvas");
+        newCanvas.className = "bs-chart";
+        canvasContainer.appendChild(newCanvas);
+
+        new Chart(document.querySelector(".bs-chart"), {
+            data: {
+                datasets: [{
+                    type: 'bar',
+                    label: 'Assets',
+                    data: ASSETS.reverse(),
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)'
+                }, {
+                    type: 'bar',
+                    label: 'Liabilities',
+                    data: LIABILITIES.reverse(),
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgb(54, 162, 235)'
+                }, {
+                    type: 'bar',
+                    label: 'Shareholder Equity',
+                    data: EQUITY.reverse(),
+                    borderColor: 'rgb(175,238,238)',
+                    backgroundColor: 'rgb(175,238,238)'
+                }],
+                labels: DATE.reverse()
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
 }
 
 export default Stock;
 
+//finished...
