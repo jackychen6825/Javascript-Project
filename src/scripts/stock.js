@@ -31,7 +31,6 @@ class Stock {
                 parseFloat(data['Time Series (Daily)'][key]['6. volume']) / 100000
                 );
         }     
-   
 
         return { DATE, OPEN, HIGH, LOW, CLOSE, VOLUME }; 
     }
@@ -189,8 +188,8 @@ class Stock {
             }
         });
     }
-
 }
 
 export default Stock;
 
+//finished...
